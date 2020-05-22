@@ -1,6 +1,7 @@
 var path = require('path');
 var copydir = require('copy-dir');
 const { existsSync, mkdirSync } = require("fs");
+const fs = require("fs");
 var express = require('express');
 var app = express();
 const filesToIgnore = ['client.js', 'package.json', 'package-lock.json', 'secretKey.txt'];
@@ -27,6 +28,11 @@ app.post('/pull', async (req, res) => {
 })
 
 
+app.post('/delete', async (req, res) => {
+    const { key } = req.body;
+    const { success, message } = await deleteData(targetPath + "/" + key)
+    return res.send({ success, message })
+})
 
 app.listen(5000, (data) => {
     console.log("Server Listening on port 5000");
@@ -75,5 +81,32 @@ async function returnData(resource, targetPath) {
             return { success: false, message: "No backup found please check your provided key"}
         }
         return { success: false, message: err.message }
+    }
+}
+
+
+async function deleteData(targetPath) {
+    removeDir(targetPath)
+    return { success: true, message: "Backup delete successfull" }
+}
+
+
+const removeDir = function (path) {
+    if (fs.existsSync(path)) {
+        const files = fs.readdirSync(path)
+        if (files.length > 0) {
+            files.forEach(function (filename) {
+                if (fs.statSync(path + "/" + filename).isDirectory()) {
+                    removeDir(path + "/" + filename)
+                } else {
+                    fs.unlinkSync(path + "/" + filename)
+                }
+            })
+            fs.rmdirSync(path)
+        } else {
+            fs.rmdirSync(path)
+        }
+    } else {
+        console.log("Directory path not found.")
     }
 }

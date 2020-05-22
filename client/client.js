@@ -24,7 +24,11 @@ else if (argv._.includes('push')) {
 }
 else if (argv._.includes('pull')) {
     pullData();
-} else {
+} 
+else if (argv._.includes('delete')) {
+    deleteData();
+}
+else {
     console.error("Please provide atleast one argument");
     return false
 }
@@ -47,3 +51,11 @@ function pullData() {
     });
 }
 
+function deleteData() {
+    const resourcePath = path.join(__dirname, `./`)
+    axios.post("http://localhost:5000/delete", { resourcePath, key: data }).then(data => {
+        console.log(data.data);
+    }).catch(err => {
+        console.log(err);
+    });
+}
